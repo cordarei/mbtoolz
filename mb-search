@@ -3,6 +3,7 @@
 
 import argparse
 import musicbrainzngs as mb
+import re
 
 
 argparser = argparse.ArgumentParser()
@@ -14,9 +15,53 @@ argparser.add_argument('query')
 args = argparser.parse_args()
 
 
+def format_table(data, columns):
+    """
+    Usage:
+
+        format_table(releases, [('Release Id', 'id'), ('Title', 'title'),
+            ('Artist', 'artist-credit-phrase'), ('Folder Name', fmt_dir)])
+    """
+    def _get(row, extractor):
+        try:
+            return row[extractor]
+        except:
+            try:
+                return extractor(row)
+            except:
+                return None
+
+    headers = [h for h,fmt in columns]
+    rows = [[_get(r, ex) for h,ex in columns] for r in data]
+    cols = [[headers[i]] + [r[i] for r in rows] for i in xrange(len(rows[0]))]
+    widths = [max(len(x) for x in c) for c in cols]
+
+    rows = [[u"{0:{1}}".format(x, w) for x,w in zip(r, widths)] for r in rows]
+    headers = [u"{0: ^{1}}".format(x, w) for x,w in zip(headers, widths)]
+    print ' '.join(headers)
+    print ' '.join([u'='*w for w in widths])
+    for r in rows:
+        print ' '.join(r)
+
+
 def format_release_list(releases):
-    for r in releases:
-        print r['id'],r['title'],r['artist-credit-phrase']
+    # for r in releases:
+    #     print r['id'],r['title'],r['artist-credit-phrase']
+    def make_folder_name(rel):
+        s = u'"{} - {}"'.format(rel['artist-credit-phrase'], rel['title'])
+        s = re.sub(u'/', ' ', s)
+        s = re.sub(ur'\s\s+', ' ', s)
+        return s
+    # for r in releases:
+    #     print r['id'],r['title'],r['artist-credit-phrase'], make_folder_name(r)
+    columns = [
+        ('Release Id', 'id'),
+        ('Title', 'title'),
+        ('Artist', 'artist-credit-phrase'),
+        ('Date', 'date'),
+        ('Folder Name', make_folder_name)
+    ]
+    format_table(releases, columns)
 
 def format_release_group_list(release_groups):
     for r in release_groups:
@@ -32,17 +77,17 @@ mb.set_useragent('mbtoolz', '0.0.1a', 'http://github.com/cordarei/mbtoolz')
 results = None
 
 if args.artist:
-    d = mb.search_artists(args.query)
+    d = mb.search_artists(args.query, limit=5)
     if d:
         results = d['artist-list']
         format_artist_list(results)
 elif args.releasegroup:
-    d = mb.search_release_groups(args.query)
+    d = mb.search_release_groups(args.query, limit=5)
     if d:
         results = d['release-group-list']
         format_release_group_list(results)
 elif args.release:
-    d = mb.search_releases(args.query)
+    d = mb.search_releases(args.query, limit=5)
     if d:
         results = d['release-list']
         format_release_list(results)
