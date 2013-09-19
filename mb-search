@@ -1,0 +1,53 @@
+#!/usr/bin/env python2
+# encoding: utf-8
+
+import argparse
+import musicbrainzngs as mb
+
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('-a', '--artist', dest='artist', action='store_true', default=False)
+argparser.add_argument('-g', '--releasegroup', dest='releasegroup', action='store_true', default=False)
+argparser.add_argument('-r', '--release', dest='release', action='store_true', default=False)
+argparser.add_argument('query')
+
+args = argparser.parse_args()
+
+
+def format_release_list(releases):
+    for r in releases:
+        print r['id'],r['title'],r['artist-credit-phrase']
+
+def format_release_group_list(release_groups):
+    for r in release_groups:
+        print r['id'],r['title'],r['artist-credit-phrase']
+
+def format_artist_list(artists):
+    for a in artists:
+        print a['id'],a['name']
+
+
+mb.set_useragent('mbtoolz', '0.0.1a', 'http://github.com/cordarei/mbtoolz')
+
+results = None
+
+if args.artist:
+    d = mb.search_artists(args.query)
+    if d:
+        results = d['artist-list']
+        format_artist_list(results)
+elif args.releasegroup:
+    d = mb.search_release_groups(args.query)
+    if d:
+        results = d['release-group-list']
+        format_release_group_list(results)
+elif args.release:
+    d = mb.search_releases(args.query)
+    if d:
+        results = d['release-list']
+        format_release_list(results)
+
+# print
+# import pprint
+# pp = pprint.PrettyPrinter()
+# pp.pprint(results[0])

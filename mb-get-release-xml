@@ -1,0 +1,8 @@
+#!/bin/bash
+
+URL="http://musicbrainz.org/ws/2/release/${1}?inc=artists+labels+recordings+release-groups"
+
+# USERAGENT='mbtoolz/0.0.1a ( http://github.com/cordarei/mbtoolz )'
+
+# curl -s -A "'${USERAGENT}'" "${URL}" | tidy -xml -i -utf8 2>/dev/null
+curl -s "${URL}" | tidy -xml -i -utf8 2>/dev/null
