@@ -34,7 +34,7 @@ def format_table(data, columns):
     headers = [h for h,fmt in columns]
     rows = [[_get(r, ex) for h,ex in columns] for r in data]
     cols = [[headers[i]] + [r[i] for r in rows] for i in xrange(len(rows[0]))]
-    widths = [max(len(x) for x in c) for c in cols]
+    widths = [max(len(x if x else '') for x in c) for c in cols]
 
     rows = [[u"{0:{1}}".format(x, w) for x,w in zip(r, widths)] for r in rows]
     headers = [u"{0: ^{1}}".format(x, w) for x,w in zip(headers, widths)]
@@ -91,7 +91,10 @@ elif args.release:
     d = mb.search_releases(args.query, limit=5)
     if d:
         results = d['release-list']
-        format_release_list(results)
+        if results:
+            format_release_list(results)
+        else:
+            print "No results."
 
 # print
 # import pprint
