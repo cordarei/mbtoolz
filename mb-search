@@ -45,15 +45,16 @@ def format_table(data, columns):
 
 
 def format_release_list(releases):
-    # for r in releases:
-    #     print r['id'],r['title'],r['artist-credit-phrase']
     def make_folder_name(rel):
-        s = u'"{} - {}"'.format(rel['artist-credit-phrase'], rel['title'])
-        s = re.sub(u'/', ' ', s)
+        s = u'{} - {}'.format(rel['artist-credit-phrase'], rel['title'])
+        # replace slashes
+        s = re.sub(ur'[\\/]', u'_', s)
+        # replace windows incompatible characters (':' also causes problems with
+        # some *nix programs)
+        s = re.sub(ur'["*:<>?|]', u'_', s)
         s = re.sub(ur'\s\s+', ' ', s)
+        s = u'"{}"'.format(s)
         return s
-    # for r in releases:
-    #     print r['id'],r['title'],r['artist-credit-phrase'], make_folder_name(r)
     columns = [
         ('Release Id', 'id'),
         ('Title', 'title'),
