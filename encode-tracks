@@ -19,7 +19,7 @@ for line in sys.stdin:
         print('Found release id:' + releaseid, file=sys.stderr)
     elif '</medium>' in line:
         discnum = discnum + 1
-    elif 'track id' in line:
+    elif 'recording id' in line:
         trackid = line.split('"')[1]
         print('Found track #{} with id:{}'.format(tracknum, trackid),
               file=sys.stderr)
