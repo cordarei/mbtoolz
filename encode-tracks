@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+#
+# Take XML input from STDIN; assume formatted nicely with `tiny` &c
+#
+# Output commands to extract/encode tracks with musicbrainz Vorbis comments
+#
+
+import sys
+
+
+discnum = 1
+tracknum = 1
+releaseid = None
+
+for line in sys.stdin:
+    if 'release id' in line:
+        releaseid = line.split('"')[1]
+        print('Found release id:' + releaseid, file=sys.stderr)
+    elif '</medium>' in line:
+        discnum = discnum + 1
+    elif 'track id' in line:
+        trackid = line.split('"')[1]
+        print('Found track #{} with id:{}'.format(tracknum, trackid),
+              file=sys.stderr)
+        cuestr = '{}.1-{}.0'.format(tracknum, tracknum + 1)
+        discstr = 'disc{}.flac'.format(discnum)
+        trackfile = 'tracks/track{}'.format(tracknum)
+        albumtag = 'musicbrainz_albumid={}'.format(releaseid)
+        tracktag = 'musicbrainz_trackid={}'.format(trackid)
+        tracknumtag = 'tracknumber={}'.format(tracknum)
+        discnumtag = 'discnumber={}'.format(discnum)
+        comments = ' '.join(
+            "-c '{}'".format(c)
+            for c in (albumtag, tracktag, tracknumtag)
+        )
+        flaccmd = "flac -d --cue='{cue}' {disc} -o {trackfile}.wav".format(
+            cue=cuestr,
+            disc=discstr,
+            trackfile=trackfile)
+        oggcmd = "oggenc -q 4 -o {trackfile}.ogg {comments} {trackfile}.wav".format(
+            trackfile=trackfile,
+            comments=comments)
+        rmcmd = "rm {}.wav".format(trackfile)
+        print("{} && {} && {}".format(flaccmd, oggcmd, rmcmd))
+        tracknum = tracknum + 1
